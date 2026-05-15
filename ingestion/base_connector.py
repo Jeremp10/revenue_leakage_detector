@@ -7,6 +7,9 @@ from datetime import datetime
 import pandas as pd
 import logging
 
+# create logs folder if it doesn't exist
+os.makedirs("logs", exist_ok=True)
+
 logging.basicConfig(
     filename="logs/ingestion.log",
     level=logging.INFO,

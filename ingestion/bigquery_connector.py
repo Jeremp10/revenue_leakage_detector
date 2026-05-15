@@ -8,7 +8,8 @@ class BigQueryConnector(BaseConnector):
     def connect(self):
         credentials = service_account.Credentials.from_service_account_file(
             self.config["credentials_path"],
-            scopes=["https://www.googleapis.com/auth/bigquery.readonly"]
+            scopes=["https://www.googleapis.com/auth/bigquery",
+            "https://www.googleapis.com/auth/cloud-platform"]
         )
         self.client = bigquery.Client(
             credentials=credentials,
@@ -19,18 +20,20 @@ class BigQueryConnector(BaseConnector):
         self.connect()
         query = f"""
         SELECT
-                order_id,
-                user_id,
-                product_id,
-                status,
-                created_at,
-                shipped_at,
-                delivered_at,
-                returned_at,
-                sale_price,
-                cost
-            FROM `bigquery-public-data.thelook_ecommerce.order_items`
-            WHERE created_at BETWEEN '{date_from}' AND '{date_to}'
+          oi.order_id,
+          oi.user_id,
+          oi.product_id,
+          oi.status,
+          oi.created_at,
+          oi.shipped_at,
+          oi.delivered_at,
+          oi.returned_at,
+          oi.sale_price,
+          ii.cost
+        FROM `bigquery-public-data.thelook_ecommerce.order_items` oi
+        LEFT JOIN `bigquery-public-data.thelook_ecommerce.inventory_items` ii
+            ON oi.inventory_item_id = ii.id
+        WHERE oi.created_at BETWEEN '{date_from}' AND '{date_to}'
             """
         #run query
         dataframe = self.client.query(query).to_dataframe()
